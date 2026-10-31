@@ -32,7 +32,24 @@ select{padding:7px;border:1px solid #d9deea;border-radius:8px;background:white;c
 .dayrow button{padding:7px 10px;font-size:12px}.links{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.links a{color:#5048bd;background:#f0efff;padding:10px 12px;border-radius:10px;text-decoration:none;font-weight:750;font-size:13px}
 .taskbox{padding:14px;margin:12px 0;border:1px solid #e7eaf2;border-radius:14px;background:#fbfcff}.taskbox a{display:inline-block;color:#5048bd;font-weight:800;margin:7px 0;text-decoration:none}.note{font-size:12px;color:#758198;line-height:1.6;margin-top:16px}
 @media(max-width:680px){main{padding:14px 12px 35px}.grid{grid-template-columns:1fr}.hero{padding-top:14px}.dayrow{grid-template-columns:38px 1fr auto;gap:8px}.panel{padding:16px}}
+
+.auth-panel{margin:0 0 16px;border-top:4px solid #36a88d}.auth-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.auth-panel input{width:100%;padding:11px;border:1px solid #d9deea;border-radius:9px;font:inherit}.auth-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.auth-status{font-size:13px;color:#59677e;margin:10px 0 0;line-height:1.5}.auth-user{font-weight:800;color:#273654}@media(max-width:680px){.auth-grid{grid-template-columns:1fr}}
 </style></head><body><main>
+<section class="panel auth-panel" id="authPanel">
+  <div class="label">Cloud account · sync across devices</div>
+  <h2>Sign in to sync your study progress</h2>
+  <p class="focus">Create one username and password, then use the same details on Android and Windows. No Gmail login is needed.</p>
+  <div class="auth-grid">
+    <label>Username<input id="authUsername" type="text" minlength="3" maxlength="24" autocomplete="username" placeholder="e.g. rai_study"></label>
+    <label>Password<input id="authPassword" type="password" minlength="8" autocomplete="current-password" placeholder="At least 8 characters"></label>
+  </div>
+  <div class="auth-actions">
+    <button onclick="createStudyAccount()">Create account</button>
+    <button class="secondary" onclick="loginStudyAccount()">Log in</button>
+    <button class="secondary" id="logoutButton" onclick="logoutStudyAccount()" style="display:none">Log out</button>
+  </div>
+  <p class="auth-status" id="cloudStatus" aria-live="polite">Not logged in. Your existing local progress remains on this device until you sign in.</p>
+</section>
 <header class="hero"><div class="kicker">IGNOU • BCA_NEW • Semester 1</div><h1>November Study Sprint</h1><p>Two subjects every day · one complete unit from each · 1–30 November 2026</p></header>
 <section class="panel motivation" aria-live="polite" aria-label="Daily motivational quote">
   <div class="label">Your daily motivation</div>
@@ -60,7 +77,7 @@ select{padding:7px;border:1px solid #d9deea;border-radius:8px;background:white;c
 <a href="https://egyankosh.ac.in/" target="_blank">eGyanKosh study material ↗</a>
 <a href="https://www.ignou.ac.in/viewFile/SOCIS/programmeguide/BCA_NEW-May-2026.pdf" target="_blank">Programme Guide PDF ↗</a>
 </div><p class="note">Each day has two different subjects, with one complete unit from each. The four theory courses contain 58 units total, scheduled as 29 pairs from two different subjects each day. Subject combinations rotate across the month. Day 30 is for BCSL-013 lab practice and final Mathematics revision. Every 2 days, a 15–20 minute revision prompt is included. Links open official eGyanKosh unit listings; select the matching Unit title to open the PDF available there. Some units are supplied inside block PDFs rather than separate files. Progress is stored on this browser/device. Use Export/Import above to transfer it privately between devices.</p></section>
-</main><script>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script>
 const subjects=[
 {code:'BEVAE-181',name:'Environmental Studies',units:['Our Environment','Ecosystems','Major Ecosystems','Land and Water','Forest Resources','Biodiversity: Value and Services','Energy Resources','Biodiversity: Threats and Conservation','Environmental Pollution and Hazard','Waste Management','Global Environmental Issues','Environmental Legislation','Human Communities and Environment','Environmental Ethics'],url:'https://egyankosh.ac.in/handle/123456789/106393/browse?type=title'},
 {code:'BEGLA-136',name:'English at the Workplace',units:['Profiling Oneself for the Job','Searching for a Job','Responding to Job Advertisements','Preparing for the Job','Using Body Language Effectively','Portfolio Making','Writing Your Curriculum Vitae (CV)','Preparing to Face an Interview','Etiquette, Cultural Awareness and Gender Perceptions','Understanding Customers','Essentials of Customer Service','Work Ethics','Participating in Discussions','Making Presentations','Writing Business Letters','Writing Business Emails'],url:'https://egyankosh.ac.in/handle/123456789/106399/browse?type=title'},
@@ -88,7 +105,93 @@ if(!saved.done)saved.done={}; if(!saved.moved)saved.moved={};
 let state=saved.done, moved=saved.moved, selected=1;
 function todayDay(){const n=new Date();return n.getFullYear()===2026&&n.getMonth()===10?n.getDate():null;}
 const taskId=(t,d,i)=>`${d}-${i}-${t.code}-${t.unit}`;
-function persist(){try{localStorage.setItem(key,JSON.stringify({done:state,moved}));}catch(e){reminderStatus('Browser storage is blocked. Progress may not be saved after closing this page.');}}
+function persist(){try{localStorage.setItem(activeStorageKey,JSON.stringify({done:state,moved}));}catch(e){reminderStatus('Browser storage is blocked. Progress may not be saved after closing this page.');}scheduleCloudSave();}
+
+const SUPABASE_URL='https://fihvxpsfdsixvpskdffw.supabase.co';
+const SUPABASE_PUBLISHABLE_KEY='sb_publishable_OqK5_Ok_ZRJpxaEV7iJm6Q__-HTn7nX';
+const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+let currentUser=null,cloudSyncReady=false,cloudSaveTimer=null,activeStorageKey=key;
+const activeUserKey=key+'-active-user';
+function cloudMessage(message){const el=document.getElementById('cloudStatus');if(el)el.textContent=message;}
+function usernameEmail(username){return username.toLowerCase()+'@accounts.bca-study.invalid';}
+function readProgress(storageKey){try{const value=JSON.parse(localStorage.getItem(storageKey)||'{}');return {done:value.done||{},moved:value.moved||{}};}catch(e){return {done:{},moved:{}};}}
+function updateAuthDisplay(){
+ const logged=!!currentUser;
+ const logout=document.getElementById('logoutButton');
+ if(logout)logout.style.display=logged?'inline-block':'none';
+}
+async function activateCloudUser(user){
+ currentUser=user;
+ const scopedKey=key+'-user-'+user.id;
+ const previousUser=localStorage.getItem(activeUserKey);
+ const local=readProgress(localStorage.getItem(scopedKey)?scopedKey:(!previousUser?key:scopedKey));
+ activeStorageKey=scopedKey;
+ state=local.done;moved=local.moved;
+ localStorage.setItem(activeUserKey,user.id);
+ cloudSyncReady=false;
+ updateAuthDisplay();
+ cloudMessage('Logged in. Checking your saved cloud progress…');
+ render();
+ const {data,error}=await supabaseClient.from('study_progress').select('done,moved').eq('user_id',user.id).maybeSingle();
+ if(error){cloudMessage('Login successful, but cloud data could not be loaded: '+error.message);return;}
+ if(data){
+   const mergedDone={...(data.done||{})};
+   Object.keys(state).forEach(k=>{if(state[k]===true||!(k in mergedDone))mergedDone[k]=state[k];});
+   const mergedMoved={...(moved||{}),...(data.moved||{})};
+   state=mergedDone;moved=mergedMoved;
+   cloudMessage('Cloud progress loaded. Syncing this device…');
+ }else{
+   cloudMessage('New cloud profile found. Uploading this device’s existing progress…');
+ }
+ cloudSyncReady=true;
+ render();
+ await saveCloudNow();
+}
+async function saveCloudNow(){
+ if(!currentUser||!cloudSyncReady)return;
+ const {error}=await supabaseClient.from('study_progress').upsert({
+   user_id:currentUser.id,done:state,moved,updated_at:new Date().toISOString()
+ },{onConflict:'user_id'});
+ if(error)cloudMessage('Cloud sync error: '+error.message);
+ else cloudMessage('✓ Logged in as '+(currentUser.user_metadata?.username||currentUser.email.split('@')[0])+' · progress synced');
+}
+function scheduleCloudSave(){
+ if(!currentUser||!cloudSyncReady)return;
+ clearTimeout(cloudSaveTimer);
+ cloudMessage('Saving progress to cloud…');
+ cloudSaveTimer=setTimeout(saveCloudNow,700);
+}
+async function createStudyAccount(){
+ const username=(document.getElementById('authUsername').value||'').trim().toLowerCase();
+ const password=document.getElementById('authPassword').value||'';
+ if(!/^[a-z0-9._-]{3,24}$/.test(username)){cloudMessage('Username must be 3–24 characters: letters, numbers, dot, underscore or hyphen.');return;}
+ if(password.length<8){cloudMessage('Password must be at least 8 characters.');return;}
+ cloudMessage('Creating your account…');
+ const {data,error}=await supabaseClient.auth.signUp({email:usernameEmail(username),password,options:{data:{username}}});
+ if(error){cloudMessage('Could not create account: '+error.message);return;}
+ if(data.session&&data.user)await activateCloudUser(data.user);
+ else cloudMessage('Account created, but Supabase is still asking for email confirmation. Please check that Confirm Email is OFF in Authentication settings.');
+}
+async function loginStudyAccount(){
+ const username=(document.getElementById('authUsername').value||'').trim().toLowerCase();
+ const password=document.getElementById('authPassword').value||'';
+ if(!/^[a-z0-9._-]{3,24}$/.test(username)||!password){cloudMessage('Enter your username and password first.');return;}
+ cloudMessage('Logging in…');
+ const {data,error}=await supabaseClient.auth.signInWithPassword({email:usernameEmail(username),password});
+ if(error){cloudMessage('Login failed: '+error.message);return;}
+ await activateCloudUser(data.user);
+}
+async function logoutStudyAccount(){
+ await supabaseClient.auth.signOut();
+ currentUser=null;cloudSyncReady=false;clearTimeout(cloudSaveTimer);updateAuthDisplay();
+ cloudMessage('Logged out. This account’s progress remains saved in the cloud.');
+}
+async function restoreCloudSession(){
+ const {data,error}=await supabaseClient.auth.getSession();
+ if(error){cloudMessage('Could not restore login: '+error.message);return;}
+ if(data.session?.user)await activateCloudUser(data.session.user);
+}
+
 function scheduledDay(t,d,i){return Number(moved[taskId(t,d,i)]||d)}
 function getTasksForDay(day){
   const out=[];
@@ -191,6 +294,6 @@ function sendReminder(h){if(!reminderEnabled||Notification.permission!=='granted
 function checkReminder(){if(!reminderEnabled)return;let d=new Date();if(d.getFullYear()===2026&&d.getMonth()===10&&d.getMinutes()===0&&[10,13,18].includes(d.getHours()))sendReminder(d.getHours())}
 async function enableReminders(){if(!('Notification'in window)){reminderStatus('This browser does not support notifications.');return}if(!window.isSecureContext&&location.hostname!=='localhost'){reminderStatus('Notifications require an HTTPS-hosted page.');return}let p=await Notification.requestPermission();if(p!=='granted'){reminderStatus('Permission not granted.');return}reminderEnabled=true;localStorage.setItem(reminderKey,'yes');reminderStatus('Enabled for 10 AM, 1 PM and 6 PM. Keep this page open.');testReminder()}
 function testReminder(){if(!('Notification'in window)||Notification.permission!=='granted'){reminderStatus('First enable notifications and allow permission.');return}new Notification('🔔 BCA_NEW reminder test',{body:'Notifications are working on this device.'})}
-if(reminderEnabled&&'Notification'in window&&Notification.permission==='granted')reminderStatus('Enabled: 10 AM, 1 PM and 6 PM. Keep this page open.');setInterval(checkReminder,15000);checkReminder();showDailyQuote();render();
+if(reminderEnabled&&'Notification'in window&&Notification.permission==='granted')reminderStatus('Enabled: 10 AM, 1 PM and 6 PM. Keep this page open.');setInterval(checkReminder,15000);checkReminder();showDailyQuote();render();restoreCloudSession();
 window.addEventListener('error',function(){const d=document.getElementById('dateLabel');if(d)d.textContent='App loading error — please reopen this updated file in Chrome or Edge.';});
 </script></body></html>
