@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101b35"><title>BCA_NEW November Sprint</title>
+<style>
+:root{color-scheme:light;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:#f4f6fb;color:#17213a}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(180deg,#101b35 0,#18294c 290px,#f4f6fb 290px);min-height:100vh}
+main{max-width:980px;margin:auto;padding:24px 18px 50px}.hero{color:white;padding:22px 4px 18px}
+.kicker{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#a9bee8;font-weight:800}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.1;margin:9px 0}.hero p{color:#c6d2e9;margin:0}
+.grid{display:grid;grid-template-columns:1.5fr .8fr;gap:16px;margin-top:18px}
+.panel{background:white;border:1px solid #e5e9f2;border-radius:18px;padding:20px;box-shadow:0 12px 30px #101b3510}
+.today{background:linear-gradient(135deg,#fff,#f3f6ff);border-top:4px solid #6c63ff}
+.motivation{position:relative;overflow:hidden;margin-top:14px;background:linear-gradient(120deg,#fffdf5,#f4f1ff);border:1px solid #e8e3ff}
+.motivation h2{font-size:clamp(18px,3vw,23px);line-height:1.45;max-width:760px;margin:0 0 8px;position:relative;z-index:1}
+.quote-mark{position:absolute;right:22px;top:14px;font-family:Georgia,serif;font-size:100px;line-height:1;color:#655cf0;opacity:.12}
+.motivation .tag{margin-top:8px}
+.label{font-size:12px;color:#68758c;text-transform:uppercase;letter-spacing:1px;font-weight:800}
+.date{font-size:26px;font-weight:850;margin:6px 0 14px}
+.tag{display:inline-block;background:#eeedff;color:#5147c8;border-radius:999px;padding:6px 10px;font-size:12px;font-weight:800}
+h2{font-size:19px;margin:8px 0}.chapter{font-size:23px;font-weight:850;margin:10px 0 4px}
+.focus{color:#59677e;line-height:1.5}.complete{display:flex;gap:10px;align-items:center;margin-top:18px;background:#f3f5fa;padding:12px;border-radius:12px}
+input[type=checkbox]{width:22px;height:22px;accent-color:#5c54dc}
+select{padding:7px;border:1px solid #d9deea;border-radius:8px;background:white;color:#17213a}button{border:0;border-radius:10px;padding:10px 14px;background:#222f54;color:white;font-weight:750;cursor:pointer}
+.secondary{background:#eef0f7;color:#273654}.progress{height:11px;background:#e8ebf3;border-radius:30px;overflow:hidden;margin:12px 0 5px}
+.fill{height:100%;width:0;background:linear-gradient(90deg,#655cf0,#36b89a);transition:width .2s}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.metric{background:#f5f7fb;padding:13px;border-radius:12px}.metric strong{display:block;font-size:23px}
+.tabs{display:flex;gap:8px;margin:18px 0 12px}.tab{background:#e9ecf5;color:#3b4966}.tab.active{background:#222f54;color:white}
+#allDays{display:none}.dayrow{display:grid;grid-template-columns:44px 1fr auto;gap:12px;align-items:center;padding:13px 4px;border-bottom:1px solid #edf0f5}
+.daynum{width:38px;height:38px;border-radius:12px;background:#edf0ff;color:#554bd0;display:grid;place-items:center;font-weight:850}
+.dayrow h3{font-size:14px;margin:0 0 3px}.dayrow p{font-size:12px;color:#68758c;margin:0}.done{opacity:.58}.done h3{text-decoration:line-through}
+.dayrow button{padding:7px 10px;font-size:12px}.links{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}.links a{color:#5048bd;background:#f0efff;padding:10px 12px;border-radius:10px;text-decoration:none;font-weight:750;font-size:13px}
+.taskbox{padding:14px;margin:12px 0;border:1px solid #e7eaf2;border-radius:14px;background:#fbfcff}.taskbox a{display:inline-block;color:#5048bd;font-weight:800;margin:7px 0;text-decoration:none}.note{font-size:12px;color:#758198;line-height:1.6;margin-top:16px}
+@media(max-width:680px){main{padding:14px 12px 35px}.grid{grid-template-columns:1fr}.hero{padding-top:14px}.dayrow{grid-template-columns:38px 1fr auto;gap:8px}.panel{padding:16px}}
+</style></head><body><main>
+<header class="hero"><div class="kicker">IGNOU • BCA_NEW • Semester 1</div><h1>November Study Sprint</h1><p>Two subjects every day · one complete unit from each · 1–30 November 2026</p></header>
+<section class="panel motivation" aria-live="polite" aria-label="Daily motivational quote">
+  <div class="label">Your daily motivation</div>
+  <div class="quote-mark">“</div>
+  <h2 id="dailyQuote">Small steps every day lead to big results.</h2>
+  <p id="quoteAuthor" class="focus">— Daily reminder</p>
+  <span class="tag" id="quoteDate"></span>
+</section>
+<div class="grid">
+<section class="panel today"><div class="label">Your day · changes automatically</div><div class="date" id="dateLabel">Loading…</div><div id="todayContent"></div></section>
+<aside class="panel"><div class="label">Your progress</div><div class="metrics"><div class="metric"><strong id="doneCount">0</strong><small>Theory units done</small></div><div class="metric"><strong id="leftCount">30</strong><small>Theory units left</small></div><div class="metric"><strong id="percent">0%</strong><small>Complete</small></div></div><div class="progress"><div class="fill" id="fill"></div></div><p class="focus" id="progressText">30 study days to go.</p><button class="secondary" onclick="resetProgress()">Reset progress</button></aside>
+</div>
+<div class="tabs"><button class="tab active" id="todayTab" onclick="showTab('today')">Today</button><button class="tab" id="allTab" onclick="showTab('all')">All 30 days</button></div>
+<section class="panel" id="todayPanel"><div class="label">Today's single target</div><div id="targetDetail"></div></section>
+<section class="panel" id="allDays"><div class="label">Full November calendar · tap a day to view it</div><div id="rows"></div></section>
+<section class="panel" style="margin-top:16px" id="reminderPanel"><div class="label">Daily reminders</div><h2>10 AM · 1 PM · 6 PM</h2><p class="focus">10 AM: today's two units and revision target. 1 PM: pending-unit progress nudge. 6 PM: evening check-in, including revision.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button onclick="enableReminders()">Enable notifications</button><button class="secondary" onclick="testReminder()">Test notification</button></div><p class="note" id="reminderStatus">Enable notifications and allow browser permission. Keep this page open for reminders.</p></section>
+<section class="panel" style="margin-top:16px"><h2>Private progress sync / backup</h2>
+<p class="focus">Progress is saved separately in each device's browser. To copy it between Android and Windows, export a backup on one device and import that same JSON file on the other. Export again after changes to keep both devices in step.</p>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px">
+<button onclick="exportBackup()">Export progress backup</button>
+<label class="secondary" style="padding:10px 14px;border-radius:10px;font-weight:750;cursor:pointer">Import backup <input type="file" accept="application/json" onchange="importBackup(this)" style="display:none"></label>
+<button class="secondary" onclick="resetProgress()">Reset progress</button></div></section>
+<section class="panel" style="margin-top:16px"><h2>Official IGNOU resources</h2><div class="links">
+<a href="https://www.ignou.ac.in/schools/programme/BCA_NEW" target="_blank">BCA_NEW programme page ↗</a>
+<a href="https://egyankosh.ac.in/" target="_blank">eGyanKosh study material ↗</a>
+<a href="https://www.ignou.ac.in/viewFile/SOCIS/programmeguide/BCA_NEW-May-2026.pdf" target="_blank">Programme Guide PDF ↗</a>
+</div><p class="note">Each day has two different subjects, with one complete unit from each. The four theory courses contain 58 units total, scheduled as 29 pairs from two different subjects each day. Subject combinations rotate across the month. Day 30 is for BCSL-013 lab practice and final Mathematics revision. Every 2 days, a 15–20 minute revision prompt is included. Links open official eGyanKosh unit listings; select the matching Unit title to open the PDF available there. Some units are supplied inside block PDFs rather than separate files. Progress is stored on this browser/device. Use Export/Import above to transfer it privately between devices.</p></section>
+</main><script>
+const subjects=[
+{code:'BEVAE-181',name:'Environmental Studies',units:['Our Environment','Ecosystems','Major Ecosystems','Land and Water','Forest Resources','Biodiversity: Value and Services','Energy Resources','Biodiversity: Threats and Conservation','Environmental Pollution and Hazard','Waste Management','Global Environmental Issues','Environmental Legislation','Human Communities and Environment','Environmental Ethics'],url:'https://egyankosh.ac.in/handle/123456789/106393/browse?type=title'},
+{code:'BEGLA-136',name:'English at the Workplace',units:['Profiling Oneself for the Job','Searching for a Job','Responding to Job Advertisements','Preparing for the Job','Using Body Language Effectively','Portfolio Making','Writing Your Curriculum Vitae (CV)','Preparing to Face an Interview','Etiquette, Cultural Awareness and Gender Perceptions','Understanding Customers','Essentials of Customer Service','Work Ethics','Participating in Discussions','Making Presentations','Writing Business Letters','Writing Business Emails'],url:'https://egyankosh.ac.in/handle/123456789/106399/browse?type=title'},
+{code:'BCS-111',name:'Computer Basics and PC Software',units:['Computer: Their Origin and Applications','Functioning of a Computer','Memory System','Input Output Devices and Their Functions','My Personal Computer','Software Evolution','Operating System','Concept of Programming Languages','Networking and Internet','Web Applications-I','Web Applications-II','Computer Applications'],url:'https://egyankosh.ac.in/handle/123456789/106446/browse?type=title'},
+{code:'BCS-012',name:'Basic Mathematics',units:['Determinants','Matrices-I','Matrices-II','Mathematical Induction','Sequence and Series','Complex Number','Equations','Inequalities','Differential Calculus','Simple Application of Differential Calculus','Integration','Application of Integral Calculus','Vectors-I','Vectors-II','Three-Dimensional Geometry-I','Linear Programming'],url:'https://egyankosh.ac.in/handle/123456789/106424/browse?type=title'}];
+
+const queues=subjects.map(s=>s.units.map((title,i)=>({code:s.code,subject:s.name,unit:i+1,title,url:s.url})));
+const pairOptions=[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+const pairSeq=[2,4,2,3,4,2,3,4,1,2,3,4,0,1,2,3,4,0,1,2,3,4,5,0,1,2,3,4,5];
+const used=[0,0,0,0],plan=[];
+pairSeq.forEach((pairIndex,i)=>{
+ const pair=pairOptions[pairIndex],tasks=pair.map(si=>queues[si][used[si]++]),day=i+1;
+ const revision=day===2?'Quick recall: spend 10 minutes recalling yesterday’s two units.':(day%2===1&&day>2?`Revise both units from Day ${day-2} and Day ${day-1} for 15–20 minutes.`:'');
+ plan.push({day,tasks,revision});
+});
+plan.push({day:30,tasks:[
+ {code:'BCSL-013',subject:'Computer Basics Lab',unit:'Practical',title:'Windows/Linux, Word, Excel, PowerPoint, Email and Internet practice',url:'https://egyankosh.ac.in/handle/123456789/401'},
+ {code:'BCS-012',subject:'Basic Mathematics',unit:'Revision',title:'Formula recap and mixed problem practice',url:'https://egyankosh.ac.in/handle/123456789/106424/browse?type=title'}
+],revision:'Final revision: revisit difficult units from all four theory subjects and attempt a short self-test.'});
+
+const key='bca-new-nov-2026-study-app-v2';
+let saved={done:{},moved:{}};
+try{saved=JSON.parse(localStorage.getItem(key)||'{"done":{},"moved":{}}')}catch(e){}
+if(!saved.done)saved.done={}; if(!saved.moved)saved.moved={};
+let state=saved.done, moved=saved.moved, selected=1;
+function todayDay(){const n=new Date();return n.getFullYear()===2026&&n.getMonth()===10?n.getDate():null;}
+const taskId=(t,d,i)=>`${d}-${i}-${t.code}-${t.unit}`;
+function persist(){try{localStorage.setItem(key,JSON.stringify({done:state,moved}));}catch(e){reminderStatus('Browser storage is blocked. Progress may not be saved after closing this page.');}}
+function scheduledDay(t,d,i){return Number(moved[taskId(t,d,i)]||d)}
+function getTasksForDay(day){
+  const out=[];
+  plan.forEach(p=>p.tasks.forEach((t,i)=>{if(scheduledDay(t,p.day,i)===day)out.push({t,original:p.day,i,id:taskId(t,p.day,i)})}));
+  return out;
+}
+function taskHTML(t,i,d){
+ const id=taskId(t,d,i), isDone=!!state[id], dest=scheduledDay(t,d,i);
+ return `<div class="taskbox">
+ <span class="tag">${t.code} · ${t.subject}</span>
+ <h2>${t.unit==='Practical'||t.unit==='Revision'?t.unit:'Unit '+t.unit}: ${t.title}</h2>
+ <a href="${t.url}" target="_blank" rel="noopener">Open official eGyanKosh unit list / material ↗</a>
+ <label class="complete"><input type="checkbox" ${isDone?'checked':''} onchange="setDone('${id}',this.checked)">
+ <span><b>${isDone?'Completed':'Mark this unit complete'}</b><br><small>Track this unit separately.</small></span></label>
+ <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:10px">
+ <small>Study day: ${dest}${dest!==d?' (moved from Day '+d+')':''}</small>
+ <label class="focus">Move to day <select aria-label="Move task to day" onchange="moveTask('${id}',this.value)">
+ ${Array.from({length:30},(_,n)=>`<option value="${n+1}" ${dest===n+1?'selected':''}>${n+1}</option>`).join('')}
+ </select></label>
+ <button class="secondary" onclick="moveTask('${id}',${d})">Reset day</button>
+ </div></div>`;
+}
+const dailyQuotes = [
+  {text:'शुरुआत छोटी हो सकती है, लेकिन लगातार मेहनत तुम्हें बड़ी मंज़िल तक पहुँचाती है।',author:'आज की सीख'},
+  {text:'Great things are done by a series of small things brought together.',author:'Vincent van Gogh'},
+  {text:'आज की मेहनत ही कल के आत्मविश्वास की नींव है।',author:'आज की सीख'},
+  {text:'It always seems impossible until it is done.',author:'Nelson Mandela'},
+  {text:'हर दिन थोड़ा बेहतर बनो; मुकाबला सिर्फ अपने कल से है।',author:'आज की सीख'},
+  {text:'Success is the sum of small efforts, repeated day in and day out.',author:'Robert Collier'},
+  {text:'गलतियाँ इस बात का सबूत हैं कि तुम कोशिश कर रहे हो।',author:'आज की सीख'},
+  {text:'The secret of getting ahead is getting started.',author:'Mark Twain'},
+  {text:'धीरे चलना ठीक है, बस रुकना मत।',author:'आज की सीख'},
+  {text:'Believe you can and you are halfway there.',author:'Theodore Roosevelt'},
+  {text:'तुम्हारा भविष्य आज की पढ़ाई और आदतों से बन रहा है।',author:'आज की सीख'},
+  {text:'Dreams do not work unless you do.',author:'John C. Maxwell'},
+  {text:'एकाग्रता से किया गया एक घंटा, बिना ध्यान के बिताए कई घंटों से बेहतर है।',author:'आज की सीख'},
+  {text:'You do not have to be perfect to be amazing.',author:'आज की सीख'},
+  {text:'जब मन न करे, तब भी थोड़ा पढ़ लेना ही अनुशासन है।',author:'आज की सीख'},
+  {text:'The expert in anything was once a beginner.',author:'Helen Hayes'},
+  {text:'थक जाओ तो आराम करो, लेकिन अपना सपना मत छोड़ो।',author:'आज की सीख'},
+  {text:'Your only limit is your mind.',author:'आज की सीख'},
+  {text:'हर पूरा किया हुआ यूनिट तुम्हें तुम्हारे लक्ष्य के करीब ले जाता है।',author:'आज की सीख'},
+  {text:'It is never too late to be what you might have been.',author:'George Eliot'},
+  {text:'अनुशासन, मोटिवेशन से ज्यादा दूर तक साथ देता है।',author:'आज की सीख'},
+  {text:'Focus on progress, not perfection.',author:'आज की सीख'},
+  {text:'आज का एक सही फैसला तुम्हारे पूरे कल को बदल सकता है।',author:'आज की सीख'},
+  {text:'Great effort springs naturally from great attitude.',author:'Pat Riley'},
+  {text:'पढ़ाई का हर छोटा कदम तुम्हारे बड़े सपने की तरफ है।',author:'आज की सीख'},
+  {text:'Doubt kills more dreams than failure ever will.',author:'Suzy Kassem'},
+  {text:'खुद पर भरोसा रखो; तुम जितना सोचते हो उससे ज्यादा कर सकते हो।',author:'आज की सीख'},
+  {text:'A little progress each day adds up to big results.',author:'आज की सीख'},
+  {text:'आज हार मत मानना; हो सकता है मंज़िल बस एक कोशिश दूर हो।',author:'आज की सीख'},
+  {text:'The future depends on what you do today.',author:'Mahatma Gandhi'}
+];
+function showDailyQuote(){
+  const now=new Date();
+  const start=new Date(now.getFullYear(),0,0);
+  const dayOfYear=Math.floor((now-start)/86400000);
+  const quote=dailyQuotes[(dayOfYear-1)%dailyQuotes.length];
+  document.getElementById('dailyQuote').textContent=quote.text;
+  document.getElementById('quoteAuthor').textContent='— '+quote.author;
+  document.getElementById('quoteDate').textContent=new Intl.DateTimeFormat('en-IN',{weekday:'long',day:'numeric',month:'long'}).format(now);
+}
+
+function render(){
+ const theory=plan.flatMap(p=>p.tasks.map((t,i)=>({t,d:p.day,i}))).filter(x=>x.t.code!=='BCSL-013'&&x.t.unit!=='Revision');
+ const done=theory.filter(x=>state[taskId(x.t,x.d,x.i)]).length;
+ const p=Math.round(done/58*100);
+ document.getElementById('doneCount').textContent=done;
+ document.getElementById('leftCount').textContent=58-done;
+ document.getElementById('percent').textContent=p+'%';
+ document.getElementById('fill').style.width=p+'%';
+ document.getElementById('progressText').textContent=`${58-done} theory units remaining. Practical and final revision are tracked separately.`;
+ let now=todayDay();if(now)selected=now;let d=plan[selected-1];
+ document.getElementById('dateLabel').textContent=now?new Intl.DateTimeFormat('en-IN',{day:'numeric',month:'long',year:'numeric'}).format(new Date(2026,10,now)):(new Date()<new Date(2026,10,1)?'Starts 1 November 2026':'November plan completed');
+ document.getElementById('todayContent').innerHTML=`<span class="tag">DAY ${d.day} OF 30</span><div class="chapter">${getTasksForDay(selected).length} scheduled tasks</div><div class="focus">Each unit has its own completion tick and reschedule control.</div>`;
+ const entries=getTasksForDay(selected);
+ document.getElementById('targetDetail').innerHTML=entries.map(x=>taskHTML(x.t,x.i,x.original)).join('')+
+ (d.revision?`<div class="taskbox" style="margin-top:14px;background:#fff8e8;border:1px solid #f1dfb4"><span class="tag">REVISION REMINDER</span><h2>📖 Revise previously studied units</h2><p class="focus">${d.revision}</p></div>`:'');
+ document.getElementById('rows').innerHTML=Array.from({length:30},(_,n)=>n+1).map(day=>{
+ const items=getTasksForDay(day), completed=items.filter(x=>state[x.id]).length;
+ return `<div class="dayrow"><div class="daynum">${String(day).padStart(2,'0')}</div><div><h3>Day ${day} · ${completed}/${items.length} tasks complete</h3><p>${items.map(x=>x.t.code+' — '+x.t.title).join(' + ')||'No tasks moved here'}</p></div><button onclick="selected=${day};showTab('today');render()">View</button></div>`;
+ }).join('');
+}
+function setDone(id,v){state[id]=v;persist();render()}
+function moveTask(id,day){moved[id]=Number(day);persist();render()}
+function showTab(which){let a=which==='all';document.getElementById('allDays').style.display=a?'block':'none';document.getElementById('todayPanel').style.display=a?'none':'block';document.getElementById('todayTab').classList.toggle('active',!a);document.getElementById('allTab').classList.toggle('active',a)}
+function resetProgress(){if(confirm('Reset all completion ticks and rescheduled days?')){state={};moved={};persist();render()}}
+function exportBackup(){
+ const blob=new Blob([JSON.stringify({app:'BCA Study Sprint',version:2,exportedAt:new Date().toISOString(),done:state,moved},null,2)],{type:'application/json'});
+ const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='BCA-Study-Progress-Backup.json';a.click();URL.revokeObjectURL(a.href);
+}
+function importBackup(input){
+ const f=input.files&&input.files[0];if(!f)return;const r=new FileReader();
+ r.onload=()=>{try{const x=JSON.parse(r.result);if(!x||!x.done||!x.moved)throw new Error('Invalid backup');state=x.done;moved=x.moved;persist();render();alert('Progress backup restored on this device.')}catch(e){alert('Could not read this backup file.')}};r.readAsText(f);input.value='';
+}
+const reminderKey='bca-new-nov-2026-reminders';let reminderEnabled=false;try{reminderEnabled=localStorage.getItem(reminderKey)==='yes';}catch(e){}function reminderStatus(t){let e=document.getElementById('reminderStatus');if(e)e.textContent=t}
+function reminderContent(h){let n=todayDay();if(!n)return null;let d=plan[n-1],done=!!state[n],names=d.tasks.map(t=>t.code+' '+t.title).join(' + ');if(h===10)return ['📚 Today\'s two study tasks',names];if(h===13)return [done?'🌟 Both tasks completed':'⏰ Midday progress check',done?'Great work — both units are marked complete.':`Today’s two units are still pending. ${names}. Start now so you do not fall behind.`];return [done?'✅ Today’s targets completed':'⌛ Evening check-in',done?'Well done! Both targets are complete.':`Finish today’s two units before the day ends: ${names}.`]}
+function sendReminder(h){if(!reminderEnabled||Notification.permission!=='granted')return;let m=reminderContent(h);if(!m)return;let stamp=new Date().toISOString().slice(0,10)+'-'+h,sent=JSON.parse(localStorage.getItem('bca-reminders-sent')||'[]');if(sent.includes(stamp))return;new Notification(m[0],{body:m[1],tag:stamp});sent.push(stamp);localStorage.setItem('bca-reminders-sent',JSON.stringify(sent))}
+function checkReminder(){if(!reminderEnabled)return;let d=new Date();if(d.getFullYear()===2026&&d.getMonth()===10&&d.getMinutes()===0&&[10,13,18].includes(d.getHours()))sendReminder(d.getHours())}
+async function enableReminders(){if(!('Notification'in window)){reminderStatus('This browser does not support notifications.');return}if(!window.isSecureContext&&location.hostname!=='localhost'){reminderStatus('Notifications require an HTTPS-hosted page.');return}let p=await Notification.requestPermission();if(p!=='granted'){reminderStatus('Permission not granted.');return}reminderEnabled=true;localStorage.setItem(reminderKey,'yes');reminderStatus('Enabled for 10 AM, 1 PM and 6 PM. Keep this page open.');testReminder()}
+function testReminder(){if(!('Notification'in window)||Notification.permission!=='granted'){reminderStatus('First enable notifications and allow permission.');return}new Notification('🔔 BCA_NEW reminder test',{body:'Notifications are working on this device.'})}
+if(reminderEnabled&&'Notification'in window&&Notification.permission==='granted')reminderStatus('Enabled: 10 AM, 1 PM and 6 PM. Keep this page open.');setInterval(checkReminder,15000);checkReminder();showDailyQuote();render();
+window.addEventListener('error',function(){const d=document.getElementById('dateLabel');if(d)d.textContent='App loading error — please reopen this updated file in Chrome or Edge.';});
+</script></body></html>
