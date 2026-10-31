@@ -109,7 +109,7 @@ function persist(){try{localStorage.setItem(activeStorageKey,JSON.stringify({don
 
 const SUPABASE_URL='https://fihvxpsfdsixvpskdffw.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_OqK5_Ok_ZRJpxaEV7iJm6Q__-HTn7nX';
-const supabaseClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
+const supabaseClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY)||null;
 let currentUser=null,cloudSyncReady=false,cloudSaveTimer=null,activeStorageKey=key;
 const activeUserKey=key+'-active-user';
 function cloudMessage(message){const el=document.getElementById('cloudStatus');if(el)el.textContent=message;}
@@ -162,6 +162,7 @@ function scheduleCloudSave(){
  cloudSaveTimer=setTimeout(saveCloudNow,700);
 }
 async function createStudyAccount(){
+ if(!supabaseClient){cloudMessage('Cloud login needs an internet connection. You can still use local progress and backups.');return;}
  const username=(document.getElementById('authUsername').value||'').trim().toLowerCase();
  const password=document.getElementById('authPassword').value||'';
  if(!/^[a-z0-9._-]{3,24}$/.test(username)){cloudMessage('Username must be 3–24 characters: letters, numbers, dot, underscore or hyphen.');return;}
@@ -173,6 +174,7 @@ async function createStudyAccount(){
  else cloudMessage('Account created, but Supabase is still asking for email confirmation. Please check that Confirm Email is OFF in Authentication settings.');
 }
 async function loginStudyAccount(){
+ if(!supabaseClient){cloudMessage('Cloud login needs an internet connection. You can still use local progress and backups.');return;}
  const username=(document.getElementById('authUsername').value||'').trim().toLowerCase();
  const password=document.getElementById('authPassword').value||'';
  if(!/^[a-z0-9._-]{3,24}$/.test(username)||!password){cloudMessage('Enter your username and password first.');return;}
@@ -187,6 +189,7 @@ async function logoutStudyAccount(){
  cloudMessage('Logged out. This account’s progress remains saved in the cloud.');
 }
 async function restoreCloudSession(){
+ if(!supabaseClient){cloudMessage('Cloud sync is unavailable right now. Local progress still works.');return;}
  const {data,error}=await supabaseClient.auth.getSession();
  if(error){cloudMessage('Could not restore login: '+error.message);return;}
  if(data.session?.user)await activateCloudUser(data.session.user);
