@@ -1,0 +1,45 @@
+{
+  "name": "bca-study-sprint",
+  "version": "1.0.0",
+  "description": "BCA_NEW November Study Sprint desktop app",
+  "main": "desktop/main.cjs",
+  "author": "BCA Study Sprint",
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^34.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "in.bcastudysprint.desktop",
+    "productName": "BCA Study Sprint",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "index.html",
+      "desktop/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "BCA Study Sprint"
+    }
+  }
+}
