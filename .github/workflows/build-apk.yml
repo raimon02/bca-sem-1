@@ -26,14 +26,12 @@ jobs:
         shell: bash
         run: |
           echo "Android SDK: $ANDROID_HOME"
-          ls -la "$ANDROID_HOME"
           SDKMANAGER="$(find "$ANDROID_HOME/cmdline-tools" -type f -name sdkmanager 2>/dev/null | head -n 1)"
           if [ -z "$SDKMANAGER" ]; then
             echo "sdkmanager not found under $ANDROID_HOME/cmdline-tools"
-            find "$ANDROID_HOME" -maxdepth 4 -type f -name sdkmanager 2>/dev/null || true
             exit 1
           fi
-          yes | "$SDKMANAGER" --licenses
+          yes | "$SDKMANAGER" --licenses || true
           "$SDKMANAGER" --install 'platforms;android-35' 'build-tools;35.0.0'
       - name: Build debug APK
         run: gradle assembleDebug
