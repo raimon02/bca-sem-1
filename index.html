@@ -102,7 +102,7 @@ const key='bca-new-nov-2026-study-app-v2';
 let saved={done:{},moved:{}};
 try{saved=JSON.parse(localStorage.getItem(key)||'{"done":{},"moved":{}}')}catch(e){}
 if(!saved.done)saved.done={}; if(!saved.moved)saved.moved={};
-let state=saved.done, moved=saved.moved, selected=1;
+let state=saved.done, moved=saved.moved, selected=null;
 function todayDay(){const n=new Date();return n.getFullYear()===2026&&n.getMonth()===10?n.getDate():null;}
 const taskId=(t,d,i)=>`${d}-${i}-${t.code}-${t.unit}`;
 function persist(){try{localStorage.setItem(activeStorageKey,JSON.stringify({done:state,moved}));}catch(e){reminderStatus('Browser storage is blocked. Progress may not be saved after closing this page.');}scheduleCloudSave();}
@@ -268,7 +268,7 @@ function render(){
  document.getElementById('percent').textContent=p+'%';
  document.getElementById('fill').style.width=p+'%';
  document.getElementById('progressText').textContent=`${58-done} theory units remaining. Practical and final revision are tracked separately.`;
- let now=todayDay();if(now)selected=now;let d=plan[selected-1];
+ let now=todayDay();if(selected===null)selected=now||1;let d=plan[selected-1];
  document.getElementById('dateLabel').textContent=now?new Intl.DateTimeFormat('en-IN',{day:'numeric',month:'long',year:'numeric'}).format(new Date(2026,10,now)):(new Date()<new Date(2026,10,1)?'Starts 1 November 2026':'November plan completed');
  document.getElementById('todayContent').innerHTML=`<span class="tag">DAY ${d.day} OF 30</span><div class="chapter">${getTasksForDay(selected).length} scheduled tasks</div><div class="focus">Each unit has its own completion tick and reschedule control.</div>`;
  const entries=getTasksForDay(selected);
