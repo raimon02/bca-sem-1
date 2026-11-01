@@ -282,7 +282,7 @@ function render(){
  }).join('');
 }
 function setDone(id,v){state[id]=v;persist();render()}
-function moveTask(id,day){moved[id]=Number(day);persist();render()}
+function moveTask(id,day){const destination=Math.max(1,Math.min(30,Number(day)||1));moved[id]=destination;selected=destination;persist();showTab('today',false);render();const task=plan.flatMap(p=>p.tasks.map((t,i)=>({t,id:taskId(t,p.day,i)}))).find(x=>x.id===id);if(task)showReminderToast('Task rescheduled',`${task.t.title} is now scheduled for Day ${destination}.`)}
 function showTab(which){let a=which==='all';document.getElementById('allDays').style.display=a?'block':'none';document.getElementById('todayPanel').style.display=a?'none':'block';document.getElementById('todayTab').classList.toggle('active',!a);document.getElementById('allTab').classList.toggle('active',a)}
 function resetProgress(){if(confirm('Reset all completion ticks and rescheduled days?')){state={};moved={};persist();render()}}
 function exportBackup(){
